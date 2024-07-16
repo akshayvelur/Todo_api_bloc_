@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:todo_api_bloc/screen/todo_list.dart';
+import 'package:todo_api_bloc/screen/home/ui/home_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData.dark(),
-      home: TodoListPage(),
+      home: HomePage(),
     );
   }
 }

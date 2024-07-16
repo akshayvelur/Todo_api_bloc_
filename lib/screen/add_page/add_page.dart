@@ -5,7 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 
 class AddTodoPage extends StatefulWidget {
-  const AddTodoPage({super.key});
+  final Map? todo;
+  const AddTodoPage({super.key, this.todo});
 
   @override
   State<AddTodoPage> createState() => _AddTodoPageState();
@@ -14,12 +15,26 @@ class AddTodoPage extends StatefulWidget {
 class _AddTodoPageState extends State<AddTodoPage> {
   TextEditingController titleController = TextEditingController();
   TextEditingController decriptionController = TextEditingController();
+  bool isEdit = false;
+  @override
+  void initState() {
+    final todos = widget.todo;
+    if (todos != null) {
+      isEdit = true;
+      final title = todos['title'];
+      final description = todos['description'];
+      titleController.text = title;
+      decriptionController.text = description;
+    }
+    // TODO: implement initState
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Add Todo"),
+        title: Text(isEdit ? "Edi Todo" : "Add Todo"),
       ),
       body: ListView(
         children: [
@@ -49,11 +64,11 @@ class _AddTodoPageState extends State<AddTodoPage> {
             padding: const EdgeInsets.all(20.0),
             child: ElevatedButton(
                 onPressed: () {
-                  submi();
-                  Navigator.of(context).pop();
+                  isEdit ? UpdateData() : submi();
+                  // Navigator.of(context).pop();
                 },
                 child: Text(
-                  "Submit",
+                  isEdit ? "Update" : "Submit",
                   style: GoogleFonts.roboto(color: Colors.white),
                 )),
           )
@@ -62,6 +77,38 @@ class _AddTodoPageState extends State<AddTodoPage> {
     );
   }
 
+//Update data
+  Future<void> UpdateData() async {
+    final todo = widget.todo;
+    if (todo == null) {
+      print("You can not call update with out data");
+      return;
+    }
+    final id = todo['_id'];
+    final title = titleController.text;
+    final decription = decriptionController.text;
+    final body = {
+      "title": title,
+      "description": decription,
+      "is_completed": false
+    };
+    //submit update Data
+    final url = 'https://api.nstack.in/v1/todos/$id';
+    final uri = Uri.parse(url);
+    final response = await http.put(uri,
+        body: jsonEncode(body), headers: {'Content-Type': 'application/json'});
+
+    if (response.statusCode == 200) {
+      print("creation success");
+
+      ShowSuccessMessage('Updation Success');
+    } else {
+      ShowErrorMessage('Updation failed');
+      print(response.statusCode);
+    }
+  }
+
+// Data submision
   Future<void> submi() async {
     //Get data from form
     final title = titleController.text;
@@ -85,7 +132,6 @@ class _AddTodoPageState extends State<AddTodoPage> {
       titleController.text = '';
       decriptionController.text = '';
       ShowSuccessMessage('Creation Success');
-   
     } else {
       print("creation faild");
       ShowErrorMessage('creation failed');
@@ -103,10 +149,11 @@ class _AddTodoPageState extends State<AddTodoPage> {
 
   void ShowErrorMessage(String message) {
     final snackBar = SnackBar(
+        backgroundColor: Colors.red,
         content: Text(
-      message,
-      style: TextStyle(color: Colors.red),
-    ));
+          message,
+          style: TextStyle(color: Colors.white),
+        ));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }
